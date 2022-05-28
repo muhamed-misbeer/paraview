@@ -1,0 +1,56 @@
+{
+  "name": "pvw-visualizer",
+  "description": "ParaViewWeb based application Standalone application useful to load and explore InSitu/Batch data products.",
+  "license": "BSD-3-Clause",
+  "version": "0.0.0-semantically-release",
+  "main": "./src/app.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kitware/visualizer.git"
+  },
+  "dependencies": {
+    "commander": "3.0.0",
+    "open": "6.4.0",
+    "shelljs": "0.8.3"
+  },
+  "devDependencies": {
+    "regenerator-runtime": "0.13.9",
+    "monologue.js": "0.3.5",
+    "mout": "1.1.0",
+    "react": "16.9.0",
+    "react-dom": "16.9.0",
+    "hammerjs": "2.0.8",
+    "font-awesome": "4.7.0",
+    "react-redux": "7.1.0",
+    "redux": "4.0.4",
+    "reselect": "4.0.0",
+    "kw-web-suite": "8.0.0",
+    "kw-doc": "1.3.1",
+    "paraviewweb": "3.2.21",
+    "vtk.js": "19.2.2",
+    "wslink": "1.0.6"
+  },
+  "scripts": {
+    "start": "webpack-dev-server --hot .",
+    "validate": "prettier --config ./prettier.config.js --list-different \"src/**/*.js\"",
+    "reformat": "prettier --config ./prettier.config.js --write \"src/**/*.js\"",
+    "reformat-only": "prettier --single-quote --trailing-comma es5 --print-width 80 --arrow-parens always --write",
+    "build": "webpack ",
+    "build:debug": "webpack --display-modules --mode development --devtool source-map",
+    "build:release": "webpack  --mode production",
+    "doc": "kw-doc -c ./documentation/config.js",
+    "doc:www": "kw-doc -c ./documentation/config.js -s",
+    "doc:publish": "kw-doc -c ./documentation/config.js -p",
+    "commit": "git cz",
+    "semantic-release": "semantic-release"
+  },
+  "bin": {
+    "Visualizer": "./bin/pvw-visualizer-cli.js"
+  },
+  "preferGlobal": true,
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-conventional-changelog"
+    }
+  }
+}

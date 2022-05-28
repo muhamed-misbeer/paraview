@@ -1,0 +1,214 @@
+::-webkit-scrollbar {
+    width: 2px;
+    height: 1px;
+    border-left: 0;
+    background: rgba(0,0,0,0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.4);
+    border-radius: 0
+}
+
+.container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #000;
+}
+
+.topBar {
+    background-color: #00bcd4;
+    color: white;
+    font-size: 30px;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    with: 100%;
+
+    height: 40px;
+    padding-left: 10px;
+    padding-right: 10px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.viewport {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.title {
+    position: relative;
+}
+
+.toggleMenu {
+    font-family: RobotoDraft, Roboto, sans-serif;
+    font-weight: 400;
+
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.toggleMenu img {
+    position:relative;
+    top: -1px;
+    margin-right: 10px;
+}
+
+.menu {
+    position: absolute;
+    top: 45px;
+    left: 0px;
+    height: calc(100vh - 60px);
+    width: 300px;
+    background-color: #eee;
+    z-index: 2;
+    border-radius: 5px;
+    border: solid 1px #aaa;
+    color: #111;
+    font-size: 20px;
+    transition: opacity 0.5s;
+    opacity: .75;
+    overflow: hidden;
+    user-select: none;
+}
+
+
+.menu:hover {
+   opacity: 1;
+}
+
+.hiddenMenu {
+    composes: menu;
+    z-index: -1;
+    opacity: 0;
+}
+
+.toggleMenu:hover + .menu {
+    opacity: 0.6;
+}
+
+.toggleMenu:hover + .hiddenMenu {
+    opacity: 0.4;
+    z-index: 2;
+}
+
+.buttons {
+    text-align: right;
+    display: flex;
+    align-items: center;
+}
+
+.button {
+    cursor: pointer;
+    padding-left: 10px;
+    margin-left: 5px;
+    composes: fa    from 'font-awesome/css/font-awesome.css';
+    composes: fa-fw from 'font-awesome/css/font-awesome.css';
+}
+
+.resetCameraButton {
+    composes: button;
+    composes: fa-arrows-alt from 'font-awesome/css/font-awesome.css';
+}
+
+.button:hover {
+    color: #000;
+}
+
+.networkIdle {
+  padding-right: 5px;
+  position: relative;
+  top: -1px;
+}
+
+:global(.logo-container-outer) {
+  stroke: none;
+  stroke-width: 1;
+  fill: none;
+}
+
+:global(.logo-container-inner) {
+  stroke-width: 2;
+  stroke: #ffffff;
+}
+
+.networkActive :global(.logo-container-inner) {
+  stroke: #000;
+}
+
+.networkIdle :global(.pvw_1) {
+  fill: #ffffff;
+}
+
+.networkIdle :global(.pvw_2) {
+  fill: #ffffff;
+}
+
+.networkIdle :global(.pvw_3) {
+  fill: #ffffff;
+}
+
+@keyframes redTransition {
+  0% { opacity: 1; }
+  50% { opacity: 0.25; }
+  100% { opacity: 1; }
+}
+
+@keyframes greenTransition {
+  0% { opacity: 1;}
+  50% { opacity: 0.25; }
+  100% { opacity: 1; }
+}
+
+@keyframes blueTransition {
+  0% { opacity: 1; }
+  50% { opacity: 0.25; }
+  100% { opacity: 1; }
+}
+
+.networkActive {
+  padding-right: 5px;
+  position: relative;
+  top: -1px;
+}
+
+.networkActive :global(.pvw_1) {
+  animation: redTransition 0.3s ease infinite;
+  fill: #000;
+}
+
+.networkActive :global(.pvw_2) {
+  animation: greenTransition 0.3s ease infinite;
+  animation-delay: 0.1s;
+  fill: #000;
+}
+
+.networkActive :global(.pvw_3) {
+  animation: blueTransition 0.3s ease infinite;
+  animation-delay: 0.2s;
+  fill: #000;
+}
+
+input:focus {
+  outline-color: rgb(29, 147, 249);
+}
+
+.progressOverlay {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  color: #eee;
+  z-index: 1000;
+  user-select: none;
+}
