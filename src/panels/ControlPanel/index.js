@@ -37,7 +37,7 @@ export class ControlPanel extends React.Component {
       <div className={this.props.className}>
         <div className={style.container}>
           <div className={style.actions}>
-            <i
+            {/* <i
               data-idx="0"
               onClick={this.updateActive}
               className={
@@ -45,7 +45,7 @@ export class ControlPanel extends React.Component {
                   ? style.pipelineButtonActive
                   : style.pipelineButton
               }
-            />
+            /> */}
             <i
               data-idx="1"
               onClick={this.updateActive}

@@ -2,9 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import FileBrowserWidget from 'paraviewweb/src/React/Widgets/FileBrowserWidget';
+import style from 'PVWStyle/ReactWidgets/FileBrowserWidget.mcss';
 
 import { connect } from 'react-redux';
 import { selectors, actions, dispatch } from '../../../redux';
+import { getActiveSourceId } from '../../../redux/selectors/proxies';
 
 // ----------------------------------------------------------------------------
 
@@ -12,7 +14,7 @@ export class FileBrowser extends React.Component {
   constructor(props) {
     super(props);
     this.processAction = this.processAction.bind(this);
-    this.props.openFiles('C3N-01752_CT.nrrd'); 
+    //this.props.openFiles('C3N-01752_CT.nrrd');
   }
 
   path(pathToList, path) {
@@ -38,26 +40,35 @@ export class FileBrowser extends React.Component {
     const pathList = [].concat(this.props.activePath.split('/'), name);
     pathList.shift(); // Remove the front 'Home'
     const fullPath = pathList.join('/');
-    this.props.openFiles(fullPath);      
+    this.props.openFiles(fullPath);
   }
 
-  processAction(action, name, files) {
-    // let fitlerString = '';
-    // switch(name) {
-    //   case 'C3N-01752_CT.nrrd':
-    //     fitlerString = 'C3N-01752_CT.nr*'
-    //     break;
-    //   default:
-    //     fitlerString = 'C3N01752_CT_LS_*';        
-    // }
-    // const source = this.props.pipeline.sources.filter(function (el) {
-    //   return el.name === fitlerString;
-    // });
-    // if(source != null){
-    //   dispatch(actions.proxies.deleteProxy(source[0].id));
-    // }
+
+  setRepresentation(name) {
+    console.log(name);
+  }
+
+  processAction(e, action, name, files) {
+    if (!e.target.checked) {
+      this.props.deleteProxy(e.target.dataset.id);
+      return
+    }
     this[action](name, files);
-    
+  }
+
+  getSourceDetails(label, pipeline) {
+
+    // data props   where lablel - fileid's
+    var d = this.props.data.filter(function (item) { return item.file_ids == label; });
+    if (d.length === 0) {
+      return { source_id: 0, is_checked: false, rep_id: 0 }
+    }
+    var p = pipeline.filter(function (source) { return source.name == d[0].source_name; });
+    if (p.length === 0) {
+      return { source_id: 0, is_checked: false, rep_id: 0 }
+    } else {
+      return { source_id: p[0].id, is_checked: true, rep: p[0].rep }
+    }
   }
 
   render() {
@@ -65,17 +76,83 @@ export class FileBrowser extends React.Component {
       return null;
     }
 
-    console.log(this.props.pipeline.sources)
+    this.props.list = [];
+
+    this.props.fileListing.groups.map((item, index) => {
+      var details = this.getSourceDetails(item.label, this.props.pipeline.sources);
+      this.props.list.push({
+        item: item, index: index, action: "group",
+        source_id: details.source_id,
+        is_checked: details.is_checked,
+        rep: details.rep
+      });
+    });
+
+    this.props.fileListing.files.map((item, index) => {
+      var details = this.getSourceDetails(item, this.props.pipeline.sources);
+      this.props.list.push({
+        item: item, index: index, action: "file",
+        source_id: details.source_id,
+        is_checked: details.is_checked,
+        rep: details.rep
+      });
+    });
+
+    this.props.pipeline.sources.map((item, index) => {
+      debugger;
+      var rep = item.rep;
+      var sourceId = item.id;
+      var viewId = this.props.pipeline.view;
+      var d = this.props.data.filter(function (s) { return s.source_name == item.name; });
+      if (d.length != 0) {
+        if (d[0].file_ids === 'C3N-01752_CT.nrrd') {
+          const changeToPush = [];
+          const owners = [];
+          changeToPush.push({ id: rep, name: 'Representation', value: 'Volume' });
+          owners[0] = sourceId;
+          owners[1] = rep;
+          owners[2] = viewId;
+          this.props.propertyChange({ changeSet: changeToPush, owners });
+          this.props.colorBy(rep, "POINTS", "ImageFile", "array", "Magnitude", 0, false)
+        }
+      }
+    });
 
     return (
-      <FileBrowserWidget
-        className={this.props.className}
-        path={this.props.fileListing.path}
-        directories={this.props.fileListing.dirs}
-        groups={this.props.fileListing.groups}
-        files={this.props.fileListing.files}
-        onAction={this.processAction}
-      />
+      <>
+        {/* <FileBrowserWidget
+          className={this.props.className}
+          path={this.props.fileListing.path}
+          directories={this.props.fileListing.dirs}
+          groups={this.props.fileListing.groups}
+          files={this.props.fileListing.files}
+          onAction={this.processAction}
+        /> */}
+        <div>
+          {/* {this.props.fileListing.groups.map((item, index) => (
+            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
+              <input type="checkbox" style={{ marginRight: "10px" }} checked={false} onClick={() => this.processAction("group", item, item.files)} />
+              <i className={style.groupIcon} />
+              <li><p style={{ margin: "0px" }}>{item.label}</p></li>
+            </ul>
+          ))}
+          {this.props.fileListing.files.map((item, index) => (
+            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
+              <input type="checkbox" style={{ marginRight: "10px" }} checked={false} onClick={() => this.processAction("file", item, null)} />
+              <i className={style.fileIcon} />
+              <li><p style={{ margin: "0px" }}>{item}</p></li>
+            </ul>
+          ))} */}
+          {this.props.list.map((i, index) => (
+            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
+              <input type="checkbox" style={{ marginRight: "10px" }} data-id={i.source_id} checked={i.is_checked} onClick={(e) => this.processAction(e, i.action, i.action === "group" ? i.item.label : i.item, i.action === "group" ? i.item.files : null)} />
+              <i className={i.action === "group" ? style.groupIcon : style.fileIcon} />
+              <li><p style={{ margin: "0px" }}>{i.action === "group" ? i.item.label : i.item}</p></li>
+              {/* <li>{i.action === "group"? i.item.label:i.item}</li> */}
+            </ul>
+          ))}
+        </div>
+      </>
     );
   }
 }
@@ -89,7 +166,12 @@ FileBrowser.propTypes = {
 
   fetchServerDirectory: PropTypes.func.isRequired,
   storeActiveDirectory: PropTypes.func.isRequired,
-  openFiles: PropTypes.func.isRequired,  
+  openFiles: PropTypes.func.isRequired,
+  data: PropTypes.array,
+  list: PropTypes.array,
+  deleteProxy: PropTypes.func.isRequired,
+  propertyChange: PropTypes.func.isRequired,
+  colorBy: PropTypes.func.isRequired,
 };
 
 FileBrowser.defaultProps = {
@@ -97,6 +179,21 @@ FileBrowser.defaultProps = {
   className: '',
   fileListing: undefined,
   pipeline: undefined,
+  list: [],
+  data: [{
+    "source_name": "C3N01752_CT_LS_*",
+    "file_ids": "C3N01752_CT_LS_*.stl",
+    "rep_settings": "Surface",
+    "color_settings": "Solid",
+    "type": "group"
+  },
+  {
+    "source_name": "C3N-01752_CT.nr*",
+    "file_ids": "C3N-01752_CT.nrrd",
+    "rep_settings": "Volume",
+    "color_settings": "Image File",
+    "type": "file"
+  }]
 };
 
 // Binding --------------------------------------------------------------------
@@ -112,16 +209,51 @@ export default connect(
   },
   () => {
     return {
+      propertyChange: ({ changeSet, invalidatePipeline, owners }) => {
+        dispatch(actions.proxies.applyChangeSet(changeSet, owners));
+        if (invalidatePipeline) {
+          dispatch(actions.proxies.fetchPipeline());
+        }
+
+        // Make sure we update the full proxy not just the edited properties
+        if (owners) {
+          owners.forEach((id) => dispatch(actions.proxies.fetchProxy(id)));
+        }
+      },
       fetchServerDirectory: (path) => {
         dispatch(actions.files.fetchServerDirectory(path));
+      },
+      deleteProxy: (id) => {
+        dispatch(actions.proxies.deleteProxy(id));
       },
       storeActiveDirectory: (path) => {
         dispatch(actions.files.storeActiveDirectory(path));
       },
       openFiles: (files) => {
         dispatch(actions.proxies.openFiles(files));
-        dispatch(actions.ui.updateVisiblePanel(0));
-      },    
+        //dispatch(actions.ui.updateVisiblePanel(0));
+      },
+      colorBy: (
+        representation,
+        arrayLocation,
+        arrayName,
+        colorMode,
+        vectorMode,
+        vectorComponent,
+        rescale,
+      ) => {
+        dispatch(
+          actions.colors.applyColorBy(
+            representation,
+            colorMode,
+            arrayLocation,
+            arrayName,
+            vectorComponent,
+            vectorMode,
+            rescale
+          )
+        );
+      },
     };
   }
 )(FileBrowser);
