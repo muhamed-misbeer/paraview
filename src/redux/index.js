@@ -6,7 +6,7 @@ import selectors from './selectors';
 
 export { actions, reducers, selectors };
 
-let activeStore = createStore(reducers);
+let activeStore = createStore(reducers,window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
 
 export function dispatch(action) {
   let currentAction = action;

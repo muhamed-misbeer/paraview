@@ -46,6 +46,7 @@ export default function reducer(state = initialState, action) {
       pipeline.sources.forEach((proxy) => {
         sourceToRepresentation[proxy.id] = proxy.rep;
       });
+      console.log('state.pipeline', state.pipeline)
       return Object.assign({}, state, { pipeline, sourceToRepresentation });
     }
 
@@ -122,7 +123,7 @@ export function updateProxyProperties(proxies, properties) {
 
 // --- Async actions ---
 
-export function fetchPipeline() {
+export function fetchPipeline(files) {
   return (dispatch) => {
     const netRequest = netActions.createRequest('Fetch pipeline');
     network
@@ -130,8 +131,34 @@ export function fetchPipeline() {
       .ProxyManager.list()
       .then(
         (pipeline) => {
-          dispatch(netActions.success(netRequest.id, pipeline));
-          dispatch(storePipeline(pipeline));
+          const pipelineData = [...new Map(pipeline.sources.map(item => [item.name, item])).values()]
+          let value = {
+            view: pipeline.view,
+            sources: pipelineData
+          }
+          console.log('pipelineData', value)
+          dispatch(netActions.success(netRequest.id, value));
+          var data = []
+          if (files !== undefined && files.fileName.fileName !== undefined) {
+            let value=[...new Set(files.fileName.fileName)]
+            data = [...value]
+            if (files.fullPath.length <= 2) {
+              let index = files.fullPath[0].lastIndexOf("_");
+              let s1 = files.fullPath[0].substring(0, index);
+              data.push(s1+"_*.stl")              
+            }
+            else {
+              data.push(files.fullPath)
+            }
+          }
+          else{
+            data.push(files.fullPath)
+          }
+          // if(files.sources.length !== 0 && files.fileName.fileName.length !==0){
+          //   data=[...files.fileName.fileName]
+          // }
+          dispatch(storePipeline({ ...value, ...{ fileName: data } }));
+          // dispatch(storePipeline(pipeline));
         },
         (err) => {
           dispatch(netActions.error(netRequest.id, err));
@@ -288,10 +315,12 @@ export function applyChangeSet(propertyChangeSet, propsOwners = []) {
 
 export function openFiles(files) {
   return (dispatch) => {
-    const netRequest = netActions.createRequest(`Open files ${files}`);
+    // const netRequest = netActions.createRequest(`Open files ${files}`);
+    const netRequest = netActions.createRequest(`Open files ${files.fullPath}`);
     network
       .getClient()
-      .ProxyManager.open(files)
+      .ProxyManager.open(files.fullPath)
+      // .ProxyManager.open(files)
       .then(
         (req) => {
           if (req.success) {
@@ -304,7 +333,7 @@ export function openFiles(files) {
               );
             }
             dispatch(activeActions.activate(req.id, activeActions.TYPE_SOURCE));
-            dispatch(fetchPipeline());
+            dispatch(fetchPipeline(files));
             dispatch(timeActions.fetchTime());
           } else {
             dispatch(netActions.error(netRequest.id, req));

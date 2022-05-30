@@ -12,7 +12,8 @@ export class FileBrowser extends React.Component {
   constructor(props) {
     super(props);
     this.processAction = this.processAction.bind(this);
-    this.props.openFiles('C3N-01752_CT.nrrd'); 
+    // this.props.openFiles('C3N-01752_CT.nrrd'); 
+    this.props.openFiles({ fullPath: 'C3N-01752_CT.nrrd', fileName: this.props.pipeline });
   }
 
   path(pathToList, path) {
@@ -31,14 +32,15 @@ export class FileBrowser extends React.Component {
     const basePath = [].concat(this.props.activePath.split('/'));
     basePath.shift(); // Remove the front 'Home'
     const fullPathFiles = files.map((f) => [].concat(basePath, f).join('/'));
-    this.props.openFiles(fullPathFiles);
+    this.props.openFiles({ fullPath: fullPathFiles, fileName: this.props.pipeline });
   }
 
   file(name) {
     const pathList = [].concat(this.props.activePath.split('/'), name);
     pathList.shift(); // Remove the front 'Home'
     const fullPath = pathList.join('/');
-    this.props.openFiles(fullPath);      
+    // this.props.openFiles(fullPath);      
+    this.props.openFiles({ fullPath: fullPath, fileName: this.props.pipeline });
   }
 
   processAction(action, name, files) {
@@ -57,25 +59,114 @@ export class FileBrowser extends React.Component {
     //   dispatch(actions.proxies.deleteProxy(source[0].id));
     // }
     this[action](name, files);
-    
+    console.log('action name files', this[action](name, files))
+
   }
 
   render() {
     if (!this.props.visible || !this.props.fileListing) {
       return null;
     }
+    var result=[]
+    var group=[]
 
-    console.log(this.props.pipeline.sources)
+    if(this.props.pipeline.fileName != undefined){
+      this.props.fileListing.groups.map((item2)=>{
+        this.props.pipeline.fileName.map((item)=>{
+          if(item==item2.label ){
+            let data={
+              name:item2.label,
+              enable:true,
+              file:item2.files
+            }
+            group.push(data)
+          }
+          else{
+            let data={
+              name:item2.label,
+              enable:false,
+              file:item2.files
+            }
+            group.push(data)
+          }
+        })
+      })
+    }
+    else{
+      this.props.fileListing.groups.map((item)=>{
+        let data={
+          name:item.label,
+          enable:false,
+          file:item.files
+        }
+        group.push(data)
+      })
+    }
+    let groupData = [...new Map(group.map(item => [item.name, item])).values()]
+    this.props.groupList=groupData
 
+    if(this.props.pipeline.fileName != undefined){
+      this.props.fileListing.files.map((item2)=>{
+        this.props.pipeline.fileName.map((item)=>{
+          if(item==item2 ){
+            let data={
+              name:item2,
+              enable:true
+            }
+            result.push(data)
+          }
+          else{
+            let data={
+              name:item2,
+              enable:false
+            }
+            result.push(data)
+          }
+        })
+      })
+    }
+    else{
+      this.props.fileListing.files.map((item)=>{
+        let data={
+          name:item,
+          enable:false
+        }
+        result.push(data)
+      })
+    }
+    let fileData = [...new Map(result.map(item => [item.name, item])).values()]
+    this.props.fileList=fileData
+
+    console.log('file list',this.props.fileList)
+            
+    console.log('files listing data', this.props.fileListing)
+    console.log('pipeline source', this.props.pipeline)
     return (
-      <FileBrowserWidget
-        className={this.props.className}
-        path={this.props.fileListing.path}
-        directories={this.props.fileListing.dirs}
-        groups={this.props.fileListing.groups}
-        files={this.props.fileListing.files}
-        onAction={this.processAction}
-      />
+      <>
+        <FileBrowserWidget
+          className={this.props.className}
+          path={this.props.fileListing.path}
+          directories={this.props.fileListing.dirs}
+          groups={this.props.fileListing.groups}
+          files={this.props.fileListing.files}
+          onAction={this.processAction}
+          data={this.props.pipeline}
+        />
+        <div>
+          {this.props.groupList.map((item, index) => (
+            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
+              <input type="checkbox" style={{ marginRight: "10px" }} checked={item.enable} onClick={()=>this.processAction("group",item.name,item.file)}/>
+              <li><p style={{ margin: "0px" }}>{item.name}</p></li>
+            </ul>
+          ))}
+          {this.props.fileList.map((item, index) => (
+            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
+              <input type="checkbox" style={{ marginRight: "10px" }} checked={item.enable} onClick={()=>this.processAction("file",item.name,null)}/>
+              <li><p style={{ margin: "0px" }}>{item.name}</p></li>
+            </ul>
+          ))}
+        </div>
+      </>
     );
   }
 }
@@ -89,7 +180,9 @@ FileBrowser.propTypes = {
 
   fetchServerDirectory: PropTypes.func.isRequired,
   storeActiveDirectory: PropTypes.func.isRequired,
-  openFiles: PropTypes.func.isRequired,  
+  openFiles: PropTypes.func.isRequired,
+  fileList:PropTypes.array,
+  groupList:PropTypes.array
 };
 
 FileBrowser.defaultProps = {
@@ -97,6 +190,8 @@ FileBrowser.defaultProps = {
   className: '',
   fileListing: undefined,
   pipeline: undefined,
+  fileList:[],
+  groupList:[]
 };
 
 // Binding --------------------------------------------------------------------
@@ -120,8 +215,8 @@ export default connect(
       },
       openFiles: (files) => {
         dispatch(actions.proxies.openFiles(files));
-        dispatch(actions.ui.updateVisiblePanel(0));
-      },    
+        // dispatch(actions.ui.updateVisiblePanel(0));
+      },
     };
   }
 )(FileBrowser);
