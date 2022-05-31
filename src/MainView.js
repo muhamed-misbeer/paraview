@@ -121,7 +121,7 @@ export class Visualizer extends React.Component {
       <div className={style.container}>
         <div className={style.topBar}>
           <div className={style.title}>
-            <div className={style.toggleMenu} onClick={this.toggleMenu}>
+            {/* <div className={style.toggleMenu} onClick={this.toggleMenu}>
               <InlineSvgIconWidget
                 className={
                   this.props.pendingCount || this.state.isRendererBusy
@@ -134,7 +134,7 @@ export class Visualizer extends React.Component {
                 alt="ParaViewWeb Visualizer"
               />
               Visualizer
-            </div>
+            </div> */}
             <ControlPanel
               className={this.state.menuVisible ? style.menu : style.hiddenMenu}
               resetCamera={this.resetCamera}

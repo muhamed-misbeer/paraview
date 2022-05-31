@@ -46,15 +46,11 @@ export class ControlPanel extends React.Component {
                   : style.pipelineButton
               }
             /> */}
-            <i
-              data-idx="1"
-              onClick={this.updateActive}
-              className={
-                this.props.activeIdx === 1
-                  ? style.openFileButtonActive
-                  : style.openFileButton
-              }
-            />
+            <p data-idx="1"
+            style={{margin:'0px',fontSize:"17px"}}
+              onClick={this.updateActive}>
+              Case Files
+            </p>
             {/* <i
               data-idx="2"
               onClick={this.updateActive}

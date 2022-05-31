@@ -99,7 +99,11 @@ export class PipelineBrowser extends React.Component {
     if (!this.props.visible) {
       return null;
     }
-    console.log(this.props.representation);
+    console.log('initial opacityPoints')
+    console.log(this.props.opacityPoints)
+    console.log('initial gaussians')
+    console.log(this.props.gaussians)
+    
     const sections = [
       this.props.source,
       this.props.representation,
@@ -208,6 +212,7 @@ export default connect((state) => {
     gaussians: selectors.colors.getPiecewiseGaussians(state),
 
     propertyChange: ({ changeSet, invalidatePipeline, owners }) => {
+      console.log('propertChange')
       dispatch(actions.proxies.applyChangeSet(changeSet, owners));
       if (invalidatePipeline) {
         dispatch(actions.proxies.fetchPipeline());
@@ -268,7 +273,13 @@ export default connect((state) => {
     updatePreset: ({ representation, preset }) => {
       dispatch(actions.colors.applyPreset(representation, preset));
     },
-    setOpacityPoints(points, gaussians) {
+    setOpacityPoints(points, gaussians) {   
+      
+
+      console.log('setOpacityPoints points')
+      console.log(points)
+      console.log('setOpacityPoints gaussians')
+      console.log(gaussians)      
       const serverFormat = [];
       points.forEach((p) => {
         serverFormat.push(p.x);
@@ -293,6 +304,7 @@ export default connect((state) => {
       }
     },
     onOpacityEditModeChange(isEditing) {
+      console.log('edit mode')
       // Extract updates to push
       if (!isEditing) {
         dispatch(actions.colors.pushPendingServerOpacityPoints());

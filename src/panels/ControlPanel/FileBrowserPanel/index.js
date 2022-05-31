@@ -7,6 +7,9 @@ import style from 'PVWStyle/ReactWidgets/FileBrowserWidget.mcss';
 import { connect } from 'react-redux';
 import { selectors, actions, dispatch } from '../../../redux';
 import { getActiveSourceId } from '../../../redux/selectors/proxies';
+import { SkullPoint, SkullGaussians } from './skull'
+import { BonePoints, BoneGaussians } from './bone'
+import { InitialPoints, InitialGaussians } from './initial'
 
 // ----------------------------------------------------------------------------
 
@@ -14,7 +17,13 @@ export class FileBrowser extends React.Component {
   constructor(props) {
     super(props);
     this.processAction = this.processAction.bind(this);
+    this.onChangeValue = this.onChangeValue.bind(this);
     //this.props.openFiles('C3N-01752_CT.nrrd');
+
+    this.state = {
+      repCheck: false,
+      nrrdSourceID: 0,
+    };
   }
 
   path(pathToList, path) {
@@ -53,7 +62,23 @@ export class FileBrowser extends React.Component {
       this.props.deleteProxy(e.target.dataset.id);
       return
     }
+    if (name == 'C3N-01752_CT.nrrd') {
+      this.setState({
+        repCheck: false
+      });
+    }
     this[action](name, files);
+  }
+
+  onChangeValue(event) {
+    dispatch(actions.active.activate(this.state.nrrdSourceID, 'source'));
+    if (event.target.value == 'Bone') {
+      this.props.setOpacityPoints(SkullPoint, SkullGaussians);
+    } else if (event.target.value == 'Skull') {
+      this.props.setOpacityPoints(BonePoints, BoneGaussians);
+    } else {
+      this.props.setOpacityPoints(InitialPoints, InitialGaussians);
+    }
   }
 
   getSourceDetails(label, pipeline) {
@@ -72,6 +97,7 @@ export class FileBrowser extends React.Component {
   }
 
   render() {
+    console.log(1);
     if (!this.props.visible || !this.props.fileListing) {
       return null;
     }
@@ -87,7 +113,6 @@ export class FileBrowser extends React.Component {
         rep: details.rep
       });
     });
-
     this.props.fileListing.files.map((item, index) => {
       var details = this.getSourceDetails(item, this.props.pipeline.sources);
       this.props.list.push({
@@ -105,7 +130,7 @@ export class FileBrowser extends React.Component {
       var viewId = this.props.pipeline.view;
       var d = this.props.data.filter(function (s) { return s.source_name == item.name; });
       if (d.length != 0) {
-        if (d[0].file_ids === 'C3N-01752_CT.nrrd') {
+        if (d[0].file_ids === 'C3N-01752_CT.nrrd' && !this.state.repCheck) {
           const changeToPush = [];
           const owners = [];
           changeToPush.push({ id: rep, name: 'Representation', value: 'Volume' });
@@ -114,6 +139,11 @@ export class FileBrowser extends React.Component {
           owners[2] = viewId;
           this.props.propertyChange({ changeSet: changeToPush, owners });
           this.props.colorBy(rep, "POINTS", "ImageFile", "array", "Magnitude", 0, false)
+          dispatch(actions.active.activate(sourceId, 'source'));
+          this.setState({
+            repCheck: true,
+            nrrdSourceID: sourceId
+          });
         }
       }
     });
@@ -128,7 +158,7 @@ export class FileBrowser extends React.Component {
           files={this.props.fileListing.files}
           onAction={this.processAction}
         /> */}
-        <div>
+        <div style={{ margin: "10px 11px", height: "240px" }}>
           {/* {this.props.fileListing.groups.map((item, index) => (
             <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
               <input type="checkbox" style={{ marginRight: "10px" }} checked={false} onClick={() => this.processAction("group", item, item.files)} />
@@ -144,13 +174,31 @@ export class FileBrowser extends React.Component {
             </ul>
           ))} */}
           {this.props.list.map((i, index) => (
-            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
+            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "6px", display: "flex", alignItems: "center" }}>
               <input type="checkbox" style={{ marginRight: "10px" }} data-id={i.source_id} checked={i.is_checked} onClick={(e) => this.processAction(e, i.action, i.action === "group" ? i.item.label : i.item, i.action === "group" ? i.item.files : null)} />
               <i className={i.action === "group" ? style.groupIcon : style.fileIcon} />
               <li><p style={{ margin: "0px" }}>{i.action === "group" ? i.item.label : i.item}</p></li>
               {/* <li>{i.action === "group"? i.item.label:i.item}</li> */}
             </ul>
           ))}
+        </div>
+        <div>
+          <p style={{ margin: '0px', fontSize: "17px", paddingLeft: "5px" }}>Transform Functions</p>
+          <hr />
+          <div onChange={this.onChangeValue} style={{ display: "flex", flexDirection: "column",marginLeft:"17px" }}>
+            <div style={{padding:"4px 0px"}}>
+              <input type="radio" value="Default" id="default" name="tfunction" style={{marginRight:"10px"}}/>
+              <label for="default">Default</label>
+            </div>
+            <div style={{padding:"4px 0px"}}>
+              <input type="radio" value="Bone" id="bone" name="tfunction" style={{marginRight:"10px"}}/>
+              <label for="bone">Bone</label>
+            </div>
+            <div style={{padding:"4px 0px"}}>
+              <input type="radio" value="Skull" id="skull" name="tfunction" style={{marginRight:"10px"}}/>
+              <label for="skull">Skull</label>
+            </div>
+          </div>
         </div>
       </>
     );
@@ -163,6 +211,8 @@ FileBrowser.propTypes = {
   fileListing: PropTypes.object,
   activePath: PropTypes.string.isRequired,
   pipeline: PropTypes.object.isRequired,
+  gaussians: PropTypes.object.isRequired,
+  representation: PropTypes.object.isRequired,
 
   fetchServerDirectory: PropTypes.func.isRequired,
   storeActiveDirectory: PropTypes.func.isRequired,
@@ -172,6 +222,8 @@ FileBrowser.propTypes = {
   deleteProxy: PropTypes.func.isRequired,
   propertyChange: PropTypes.func.isRequired,
   colorBy: PropTypes.func.isRequired,
+
+  setOpacityPoints: PropTypes.func.isRequired,
 };
 
 FileBrowser.defaultProps = {
@@ -179,6 +231,9 @@ FileBrowser.defaultProps = {
   className: '',
   fileListing: undefined,
   pipeline: undefined,
+  gaussians: undefined,
+  repSet: false,
+  representation: undefined,
   list: [],
   data: [{
     "source_name": "C3N01752_CT_LS_*",
@@ -203,8 +258,38 @@ export default connect(
   (state) => {
     return {
       fileListing: selectors.files.getFileListing(state),
+      //opacityPoints: selectors.colors.getPiecewisePoints(state),
       activePath: selectors.files.getActivePath(state),
       pipeline: selectors.proxies.getPipeline(state),
+      representation: selectors.proxies.getRepresentationPropertyGroup(state),
+      setOpacityPoints(points, gaussians) {
+
+        console.log(selectors.colors.getColorByArray(state));
+        const serverFormat = [];
+        points.forEach((p) => {
+          serverFormat.push(p.x);
+          serverFormat.push(p.y);
+          serverFormat.push(p.x2 || p.midpoint || 0.5);
+          serverFormat.push(p.y2 || p.sharpness || 0.5);
+        });
+        dispatch(
+          actions.colors.storePiecewiseFunction(
+            selectors.colors.getColorByArray(state),
+            points,
+            serverFormat
+          )
+        );
+        if (gaussians) {
+          dispatch(
+            actions.colors.storeGuassians(
+              selectors.colors.getColorByArray(state),
+              gaussians
+            )
+          );
+        }
+        dispatch(actions.colors.pushPendingServerOpacityPoints());
+      },
+
     };
   },
   () => {

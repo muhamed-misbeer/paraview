@@ -80,6 +80,9 @@ TimeController.defaultProps = {
 
 export default connect((state) => ({
   setTimeStep(index) {
+
+    console.log(index)
+    console.log(state.active.source)
     dispatch(actions.time.applyTimeStep(index, state.active.source));
   },
   playTime() {
