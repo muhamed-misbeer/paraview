@@ -128,6 +128,7 @@ export class FileBrowser extends React.Component {
       var rep = item.rep;
       var sourceId = item.id;
       var viewId = this.props.pipeline.view;
+      var r = this.props.representation;
       var d = this.props.data.filter(function (s) { return s.source_name == item.name; });
       if (d.length != 0) {
         if (d[0].file_ids === 'C3N-01752_CT.nrrd' && !this.state.repCheck) {
@@ -262,6 +263,7 @@ export default connect(
       activePath: selectors.files.getActivePath(state),
       pipeline: selectors.proxies.getPipeline(state),
       representation: selectors.proxies.getRepresentationPropertyGroup(state),
+      STLValues: selectors.time.getTimeValues(state),
       setOpacityPoints(points, gaussians) {
 
         console.log(selectors.colors.getColorByArray(state));

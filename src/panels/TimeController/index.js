@@ -50,6 +50,7 @@ export class TimeController extends React.Component {
         <i onClick={this.previous} className={style.previousButton} />
         <input
           className={timeClass}
+          style={{color:"white"}}
           type="text"
           readOnly
           value={`${this.props.index + 1}/${this.props.values.length}`}
