@@ -119,8 +119,8 @@ export class Visualizer extends React.Component {
       : VtkGeometryRenderer;
     return (
       <div className={style.container}>
-        <div className={style.topBar}>
-          <div className={style.title}>
+        <div >
+          <div >
             {/* <div className={style.toggleMenu} onClick={this.toggleMenu}>
               <InlineSvgIconWidget
                 className={
@@ -140,10 +140,10 @@ export class Visualizer extends React.Component {
               resetCamera={this.resetCamera}
             />
           </div>
-          <div className={style.buttons}>
+          {/* <div className={style.buttons}>
             <TimeController />
             <i className={style.resetCameraButton} onClick={this.resetCamera} />
-          </div>
+          </div> */}
         </div>
         <Renderer
           ref={(c) => {
