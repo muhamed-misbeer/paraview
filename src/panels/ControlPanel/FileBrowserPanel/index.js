@@ -39,10 +39,14 @@ export class FileBrowser extends React.Component {
   }
 
   group(name, files) {
-    const basePath = [].concat(this.props.activePath.split('/'));
-    basePath.shift(); // Remove the front 'Home'
-    const fullPathFiles = files.map((f) => [].concat(basePath, f).join('/'));
-    this.props.openFiles(fullPathFiles);
+    // const basePath = [].concat(this.props.activePath.split('/'));
+    // basePath.shift(); // Remove the front 'Home'
+    // const fullPathFiles = files.map((f) => [].concat(basePath, f).join('/'));
+    // this.props.openFiles(fullPathFiles);
+
+    files.map((f)=>{
+      this.file(f);
+    })
   }
 
   file(name) {
@@ -57,9 +61,15 @@ export class FileBrowser extends React.Component {
     console.log(name);
   }
 
-  processAction(e, action, name, files) {
+  processAction(e, action, name, files, sourceIds) {
     if (!e.target.checked) {
-      this.props.deleteProxy(e.target.dataset.id);
+      if(action=="group"){
+        sourceIds.map((id)=>{
+          this.props.deleteProxy(id);
+          return
+        })
+      }
+      this.props.deleteProxy(e.target.dataset.id);      
       return
     }
     if (name == 'C3N-01752_CT.nrrd') {
@@ -81,50 +91,76 @@ export class FileBrowser extends React.Component {
     }
   }
 
-  getSourceDetails(label, pipeline) {
-
-    // data props   where lablel - fileid's
+  getSourceDetails(label, pipeline, type) {
+    
     var d = this.props.data.filter(function (item) { return item.file_ids == label; });
     if (d.length === 0) {
       return { source_id: 0, is_checked: false, rep_id: 0 }
     }
     var p = pipeline.filter(function (source) { return source.name == d[0].source_name; });
+
+    console.log("getSourceDetails p");
+    console.log(p);
+
     if (p.length === 0) {
       return { source_id: 0, is_checked: false, rep_id: 0 }
     } else {
+
+      if(type =="group"){
+        var sourceIds = [];
+        p.map((pSource)=>{
+          sourceIds.push(pSource.id);
+        });        
+        return { source_id: p[0].id, is_checked: true, rep: p[0].rep , source_ids : sourceIds };
+      }
       return { source_id: p[0].id, is_checked: true, rep: p[0].rep }
     }
   }
 
-  render() {
-    console.log(1);
+  render() {    
     if (!this.props.visible || !this.props.fileListing) {
       return null;
     }
-
     this.props.list = [];
 
+    console.log("file group");
+    console.log(this.props.fileListing.groups);
     this.props.fileListing.groups.map((item, index) => {
-      var details = this.getSourceDetails(item.label, this.props.pipeline.sources);
+      var details = this.getSourceDetails(item.label, this.props.pipeline.sources, "group");
       this.props.list.push({
         item: item, index: index, action: "group",
         source_id: details.source_id,
         is_checked: details.is_checked,
-        rep: details.rep
+        rep: details.rep,
+        source_ids : details.source_ids
       });
     });
+
+    // this.props.fileListing.groups[0].files.map((item, index) => {
+    //   var details = this.getSourceDetails(item.label, this.props.pipeline.sources);
+    //   this.props.list.push({
+    //     item: item, index: index, action: "file",
+    //     source_id: 0,
+    //     is_checked: false,
+    //     rep: 0
+    //   });
+    // });
+
     this.props.fileListing.files.map((item, index) => {
-      var details = this.getSourceDetails(item, this.props.pipeline.sources);
+      var details = this.getSourceDetails(item, this.props.pipeline.sources, "file");
       this.props.list.push({
         item: item, index: index, action: "file",
         source_id: details.source_id,
         is_checked: details.is_checked,
-        rep: details.rep
+        rep: details.rep,
+        source_ids: 0
       });
     });
 
-    this.props.pipeline.sources.map((item, index) => {
-      debugger;
+
+    console.log("Pipeline Source");
+    console.log(this.props.pipeline.sources);
+    this.props.pipeline.sources.map((item, index) => {      
       var rep = item.rep;
       var sourceId = item.id;
       var viewId = this.props.pipeline.view;
@@ -150,39 +186,20 @@ export class FileBrowser extends React.Component {
     });
 
     return (
-      <>
-        {/* <FileBrowserWidget
-          className={this.props.className}
-          path={this.props.fileListing.path}
-          directories={this.props.fileListing.dirs}
-          groups={this.props.fileListing.groups}
-          files={this.props.fileListing.files}
-          onAction={this.processAction}
-        /> */}
-        <div style={{ margin: "10px 11px", height: "240px" }}>
-          {/* {this.props.fileListing.groups.map((item, index) => (
-            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
-              <input type="checkbox" style={{ marginRight: "10px" }} checked={false} onClick={() => this.processAction("group", item, item.files)} />
-              <i className={style.groupIcon} />
-              <li><p style={{ margin: "0px" }}>{item.label}</p></li>
-            </ul>
-          ))}
-          {this.props.fileListing.files.map((item, index) => (
-            <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "4px", display: "flex", alignItems: "center" }}>
-              <input type="checkbox" style={{ marginRight: "10px" }} checked={false} onClick={() => this.processAction("file", item, null)} />
-              <i className={style.fileIcon} />
-              <li><p style={{ margin: "0px" }}>{item}</p></li>
-            </ul>
-          ))} */}
+      <>       
+        <div style={{ margin: "10px 11px", height: "240px" }}>         
           {this.props.list.map((i, index) => (
             <ul key={index} style={{ listStyleType: "none", margin: "0px", padding: "6px", display: "flex", alignItems: "center" }}>
-              <input type="checkbox" style={{ marginRight: "10px" }} data-id={i.source_id} checked={i.is_checked} onClick={(e) => this.processAction(e, i.action, i.action === "group" ? i.item.label : i.item, i.action === "group" ? i.item.files : null)} />
+              <input type="checkbox" style={{ marginRight: "10px" }} data-id={i.source_id} checked={i.is_checked} 
+              onClick={(e) => this.processAction(e, i.action, i.action === "group" ? i.item.label : i.item, 
+              i.action === "group" ? i.item.files : null, i.action === "group" ? i.source_ids : null)} />
               <i className={i.action === "group" ? style.groupIcon : style.fileIcon} />
-              <li><p style={{ margin: "0px" }}>{i.action === "group" ? i.item.label : i.item}</p></li>
-              {/* <li>{i.action === "group"? i.item.label:i.item}</li> */}
+              <li><p style={{ margin: "0px" }}>{i.action === "group" ? i.item.label : i.item}</p></li>              
             </ul>
           ))}
         </div>
+
+        
         <div>
           <p style={{ margin: '0px', fontSize: "17px", paddingLeft: "5px" }}>Transform Functions</p>
           <hr />
@@ -236,20 +253,30 @@ FileBrowser.defaultProps = {
   repSet: false,
   representation: undefined,
   list: [],
-  data: [{
+  // data: [{
+  //   "source_name": "C3N01752_CT_LS_*",
+  //   "file_ids": "C3N01752_CT_LS_*.stl",
+  //   "rep_settings": "Surface",
+  //   "color_settings": "Solid",
+  //   "type": "group"
+  // },
+  // {
+  //   "source_name": "C3N-01752_CT.nr*",
+  //   "file_ids": "C3N-01752_CT.nrrd",
+  //   "rep_settings": "Volume",
+  //   "color_settings": "Image File",
+  //   "type": "file"
+  // }]
+
+   data: [{
     "source_name": "C3N01752_CT_LS_*",
     "file_ids": "C3N01752_CT_LS_*.stl",
-    "rep_settings": "Surface",
-    "color_settings": "Solid",
-    "type": "group"
   },
   {
     "source_name": "C3N-01752_CT.nr*",
     "file_ids": "C3N-01752_CT.nrrd",
-    "rep_settings": "Volume",
-    "color_settings": "Image File",
-    "type": "file"
   }]
+
 };
 
 // Binding --------------------------------------------------------------------
