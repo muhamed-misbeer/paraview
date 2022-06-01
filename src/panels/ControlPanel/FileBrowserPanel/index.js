@@ -80,8 +80,7 @@ export class FileBrowser extends React.Component {
     this[action](name, files);
   }
 
-  onChangeValue(event) {
-    dispatch(actions.active.activate(this.state.nrrdSourceID, 'source'));
+  onChangeValue(event) {       
     if (event.target.value == 'Bone') {
       this.props.setOpacityPoints(SkullPoint, SkullGaussians);
     } else if (event.target.value == 'Skull') {
@@ -167,6 +166,9 @@ export class FileBrowser extends React.Component {
       var r = this.props.representation;
       var d = this.props.data.filter(function (s) { return s.source_name == item.name; });
       if (d.length != 0) {
+        if(this.state.repCheck && this.props.activeSourceId != this.state.nrrdSourceID){
+            dispatch(actions.active.activate(this.state.nrrdSourceID, 'source'));
+        }
         if (d[0].file_ids === 'C3N-01752_CT.nrrd' && !this.state.repCheck) {
           const changeToPush = [];
           const owners = [];
@@ -231,6 +233,7 @@ FileBrowser.propTypes = {
   pipeline: PropTypes.object.isRequired,
   gaussians: PropTypes.object.isRequired,
   representation: PropTypes.object.isRequired,
+  activeSourceId : PropTypes.object.isRequired,
 
   fetchServerDirectory: PropTypes.func.isRequired,
   storeActiveDirectory: PropTypes.func.isRequired,
@@ -252,6 +255,7 @@ FileBrowser.defaultProps = {
   gaussians: undefined,
   repSet: false,
   representation: undefined,
+  activeSourceId: undefined,
   list: [],
   // data: [{
   //   "source_name": "C3N01752_CT_LS_*",
@@ -289,8 +293,8 @@ export default connect(
       //opacityPoints: selectors.colors.getPiecewisePoints(state),
       activePath: selectors.files.getActivePath(state),
       pipeline: selectors.proxies.getPipeline(state),
-      representation: selectors.proxies.getRepresentationPropertyGroup(state),
-      STLValues: selectors.time.getTimeValues(state),
+      representation: selectors.proxies.getRepresentationPropertyGroup(state),      
+      activeSourceId : selectors.proxies.getActiveSourceId(state),
       setOpacityPoints(points, gaussians) {
 
         console.log(selectors.colors.getColorByArray(state));
