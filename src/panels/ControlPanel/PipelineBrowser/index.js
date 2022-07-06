@@ -43,8 +43,7 @@ export class PipelineBrowser extends React.Component {
         owners.push(this.props[name].id);
       }
     });
-
-    this.props.propertyChange({ changeSet: changeToPush, owners });
+    this.props.propertyChange({ changeSet: changeToPush, owners:[] });
   }
 
   handleChange(event) {

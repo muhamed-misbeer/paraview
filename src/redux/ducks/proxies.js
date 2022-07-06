@@ -296,6 +296,7 @@ export function fetchAvailableProxies() {
 
 export function applyChangeSet(propertyChangeSet, propsOwners = []) {
   return (dispatch) => {
+    console.log(propertyChangeSet)
     const netRequest = netActions.createRequest('Apply property edits');
     network
       .getClient()
@@ -303,7 +304,7 @@ export function applyChangeSet(propertyChangeSet, propsOwners = []) {
       .then(
         (resp) => {
           dispatch(netActions.success(netRequest.id, resp));
-          dispatch(updateProxyProperties(propsOwners, propertyChangeSet));
+          // dispatch(updateProxyProperties(propsOwners, propertyChangeSet));
         },
         (err) => {
           dispatch(netActions.error(netRequest.id, err));
